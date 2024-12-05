@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning (Advanced)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        #app {
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+        }
+        .card {
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 2em;
+            background-color: #ffeb3b;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+        .close {
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        select {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <h1>Language Learning</h1>
+        <p>Виберіть рівень складності:</p>
+        <select id="difficulty">
+            <option value="beginner">Початковий</option>
+            <option value="intermediate">Середній</option>
+            <option value="advanced">Високий</option>
+        </select>
+        <p>Перекладіть слово:</p>
+        <div id="flashcard" class="card"></div>
+        <div id="controls">
+            <p>Крок <span id="step">0</span> з <span id="total">0</span></p>
+            <p>Вірно: <span id="correct">0</span> / Невірно: <span id="incorrect">0</span></p>
+            <input type="text" id="translation" placeholder="Введіть переклад">
+            <button id="checkBtn">Перевірити</button>
+        </div>
+        <div id="result-modal" class="modal">
+            <div class="modal-content">
+                <span id="close-modal" class="close">&times;</span>
+                <h2>Рівень знань:</h2>
+                <p id="knowledge-level"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const words = {
+                beginner: [
+                    { word: "apple", translation: "яблуко" },
+                    { word: "dog", translation: "собака" },
+                    { word: "cat", translation: "кіт" },
+                    { word: "house", translation: "будинок" },
+                    { word: "car", translation: "автомобіль" }
+                ],
+                intermediate: [
+                    { word: "tree", translation: "дерево" },
+                    { word: "book", translation: "книга" },
+                    { word: "sky", translation: "небо" },
+                    { word: "sun", translation: "сонце" },
+                    { word: "moon", translation: "місяць" }
+                ],
+                advanced: [
+                    { word: "knowledge", translation: "знання" },
+                    { word: "education", translation: "освіта" },
+                    { word: "philosophy", translation: "філософія" },
+                    { word: "inspiration", translation: "натхнення" },
+                    { word: "creativity", translation: "креативність" }
+                ]
+            };
+
+            let currentStep = 0;
+            let correctCount = 0;
+            let incorrectCount = 0;
+            let currentWords = [];
+            const totalWords = 5;
+
+            $('#difficulty').change(function () {
+                const difficulty = $(this).val();
+                currentWords = shuffle(words[difficulty]);
+                currentStep = 0;
+                correctCount = 0;
+                incorrectCount = 0;
+                updateStatistics();
+                updateFlashcard();
+            });
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function updateStatistics() {
+                $('#step').text(currentStep + 1);
+                $('#total').text(totalWords);
+                $('#correct').text(correctCount);
+                $('#incorrect').text(incorrectCount);
+            }
+
+            function updateKnowledgeLevel() {
+                let level = "Поганий";
+                if (correctCount / totalWords >= 0.8) {
+                    level = "Чудовий";
+                } else if (correctCount / totalWords >= 0.5) {
+                    level = "Добрий";
+                }
+                $('#knowledge-level').text(level);
+                $('#result-modal').show();
+            }
+
+            function updateFlashcard() {
+                if (currentStep < totalWords) {
+                    $('#flashcard').text(currentWords[currentStep].word);
+                }
+            }
+
+            $('#checkBtn').click(function () {
+                const translation = $('#translation').val().toLowerCase();
+                const correctTranslation = currentWords[currentStep].translation.toLowerCase();
+
+                if (translation === correctTranslation) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+
+                currentStep++;
+
+                if (currentStep < totalWords) {
+                    updateStatistics();
+                    updateFlashcard();
+                } else {
+                    updateStatistics();
+                    updateKnowledgeLevel();
+                }
+
+                $('#translation').val('');
+            });
+
+            $('#close-modal').click(function () {
+                $('#result-modal').hide();
+            });
+
+            currentWords = shuffle(words.beginner);
+            updateFlashcard();
+            updateStatistics();
+        });
+    </script>
+</body>
+</html>
